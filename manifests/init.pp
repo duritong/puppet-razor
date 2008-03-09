@@ -1,48 +1,34 @@
-# modules/skeleton/manifests/init.pp - manage skeleton stuff
+# modules/razor/manifests/init.pp - manage razor stuff
 # Copyright (C) 2007 admin@immerda.ch
 # GPLv3
+# this module is part of a whole bunch of modules, please have a look at the exim module
+#
 
-# modules_dir { "skeleton": }
+# modules_dir { "razor": }
 
-class skeleton {
+class razor {
     case $operatingsystem {
-        gentoo: { include skeleton::gentoo }
-        default: { include skeleton::base }
+        gentoo: { include razor::gentoo }
+        default: { include razor::base }
     }
 }
 
-class skeleton::base {
-    package{'skeleton':
+class razor::base {
+    package{'razor':
         ensure => installed,
+        notify => Exec[razor_setup],
+        require => Class[amavsid-new],
     }
 
-    service{skeleton:
-        ensure => running,
-        enable => true,
-        #hasstatus => true, #fixme!
-        require => Package[skeleton],
+    exec{'razor_setup':
+        command => '/usr/sbin/usermod -s /bin/bash amavis && /bin/su - amavis -c \"razor-admin -create && razor-admin -register -user=admin+razor@immerda.ch\" && /usr/sbin/usermod -s /bin/false amavis',
+        refreshonly => true,
     }
 
 }
 
-class skeleton::gentoo inherits skeleton::base {
-    Package[skeleton]{
-        category => 'some-category',
+class razor::gentoo inherits razor::base {
+    Package[razor]{
+        category => 'mail-filter',
     }
-
-    #conf.d file if needed
-#    Service[skeleton]{
-#       require +> File["/etc/conf.d/skeleton"],
-#    }
-#    file { "/etc/conf.d/skeleton":
-#        owner => "root",
-#        group => "0",
-#        mode  => 644,
-#        ensure => present,
-#        source => [
-#            "puppet://$server/dist/skeleton/conf.d/${fqdn}/skeleton",
-#            "puppet://$server/dist/skeleton/conf.d/skeleton",
-#            "puppet://$server/skeleton/conf.d/skeleton"
-#        ]
-#    }
 }
