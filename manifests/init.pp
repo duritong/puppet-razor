@@ -4,7 +4,7 @@
 # this module is part of a whole bunch of modules, please have a look at the exim module
 
 class razor {
-  case $operatingsystem {
+  case $::operatingsystem {
     gentoo: { include razor::gentoo }
     default: { include razor::base }
   }
